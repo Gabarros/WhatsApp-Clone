@@ -1,0 +1,24 @@
+{
+  "name": "whatsapp-clone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabarros/WhatsApp-Clone.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gabarros/WhatsApp-Clone/issues"
+  },
+  "homepage": "https://github.com/Gabarros/WhatsApp-Clone#readme",
+  "dependencies": {
+    "webpack": "^3.1.0"
+  }
+}
