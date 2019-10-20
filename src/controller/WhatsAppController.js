@@ -2,6 +2,8 @@ import { Format } from './../util/Format';
 import { CameraController } from './CameraController';
 import { MicrophoneController } from './MicrophoneController'
 import { DocumentPreviewController } from './DocumentPreviewController';
+import { Firebase } from './../util/Firebase';
+
 
 export class WhatsAppController{
 
@@ -9,10 +11,23 @@ export class WhatsAppController{
 
         console.log("rodando");
 
+        this.initAuth();
         this.elementsPrototype();
         this.loadElements();
         this.initEvents();
+        this._firebase = new Firebase();
     };
+
+    initAuth(){
+
+        this._firebase.initAuth().then(response=>{
+            console.log('response', response);
+
+        }).catch(err=>{
+            console.log(err);
+
+        })
+    }
 
     loadElements(){
 
