@@ -5,14 +5,14 @@ export class User extends ClassEvent{
 
     static getRef(){
 
-        return Firebase.db().collection('./users');
+        return Firebase.db().collection('/users');
 
 
     }
 
     static findByEmail(email){
 
-        return User.getRef().doce(email);
+        return User.getRef().doc(email);
     }
 
 }

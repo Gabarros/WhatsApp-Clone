@@ -33,10 +33,15 @@ export class WhatsAppController{
                 name: response.user.displayName,
                 email: response.user.email,
                 photo: response.user.photoURL
-            })
-            this.el.appContent.css({
-                display: 'flex'
+                
+            }).then(()=>{
+
+                this.el.appContent.css({
+                    display: 'flex'
+                });
             });
+
+           
         }).catch(err=>{
             console.log(err);
 
