@@ -6,8 +6,6 @@ export class Chat extends Model{
     constructor(){
 
         super();
-
-
     }
 
     get users() { this._data.users; }
@@ -15,6 +13,9 @@ export class Chat extends Model{
 
     get timeStamp() { this._data.timeStamp; }
     set timeStamp(value){this._data.timeStamp = value;}
+
+    get id() { this._data.id; }
+    set id(value){this._data.id = value;}
 
     static getRef(){
 
@@ -68,8 +69,7 @@ export class Chat extends Model{
 
                         s(chat);
                     })
-
-
+                    
                 }else{
 
                     chats.forEach(chat=>{
@@ -80,8 +80,6 @@ export class Chat extends Model{
 
                 f(err);
             });
-
-
         });
     }
     

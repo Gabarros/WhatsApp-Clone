@@ -3,9 +3,9 @@ import { CameraController } from './CameraController';
 import { MicrophoneController } from './MicrophoneController'
 import { DocumentPreviewController } from './DocumentPreviewController';
 import { Firebase } from './../util/Firebase';
-import { User } from '../model/User';
-import { Chat } from '../model/Chat';
-import { Message } from '../model/Message';
+import { User } from './../model/User';
+import { Chat } from './../model/Chat';
+import { Message } from './../model/Message';
 
 
 export class WhatsAppController {
@@ -141,11 +141,8 @@ export class WhatsAppController {
                 }
 
                 div.on('click', e => {
-
-                    console.log('chat id', contact.chatId);
                     this.setActiveChat(contact);
-
-
+         
                 });
                 this.el.contactsMessagesList.appendChild(div);
 
@@ -158,7 +155,11 @@ export class WhatsAppController {
 
     setActiveChat(contact) {
 
+        if(this._contactActive){
 
+            Message.getRef(this._contactActive.chatId).onSnapshot(()=>{});
+
+        }
         this._contactActive = contact;
 
         this.el.activeName.innerHTML = contact.name;
@@ -175,9 +176,35 @@ export class WhatsAppController {
         this.el.home.hide();
         this.el.main.css({
             display: 'flex'
-        })
+        });
+
+        Message.getRef(this._contactActive.chatId).orderBy('timeStamp')
+        .onSnapshot(docs=>{
+
+            this.el.panelMessagesContainer.innerHTML = '';
+
+            docs.forEach(doc=>{
+
+                let data = doc.data();
+                data.id = doc.id;
+              
+
+                if(!this.el.panelMessagesContainer.querySelector('#_'+data.id)){
+                    
+                    let message = new Message();
+                    message.fromJson(data);
+                    
+                    let me = (data.from === this._users.email);
+                    let view = message.getViewElement(me);
+                    this.el.panelMessagesContainer.appendChild(view);
+
+                }        
+            })
+
+        });
 
     }
+
     loadElements() {
 
         this.el = {};
