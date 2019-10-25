@@ -524,7 +524,6 @@ export class WhatsAppController {
 
             this.el.btnSendPicture.disabled = true;
 
-
             let regex = /^data:(.+);base64,(.*)$/;
 
             let result = this.el.pictureCamera.src.match(regex);
@@ -652,7 +651,15 @@ export class WhatsAppController {
         });
 
         this.el.btnSendDocument.on('click', e => {
-            console.log('send doc');
+            
+            let file = this.el.inputDocument.files[0];
+
+            let base64 = this.el.imagePanelDocumentPreview.src;
+
+            Message.sendDocument(this._contactActive.chatId, 
+                this._user.email, 
+                file, 
+                preview);
         })
 
         this.el.btnAttachContact.on('click', e => {

@@ -1,7 +1,7 @@
 import { Model } from "./Model";
 import { Firebase } from "../util/Firebase";
 import { Format } from "../util/Format";
-import { get } from "https";
+import { Base64 } from "../util/Base64";
 
 export class Message extends Model {
 
@@ -309,6 +309,11 @@ export class Message extends Model {
         div.firstElementChild.classList.add(className);
 
         return div;
+    }
+
+    static sendDocument(chatId, from, file, preview){
+
+
     }
 
     static sendImage(chatId, from, file){
