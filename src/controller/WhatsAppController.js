@@ -70,14 +70,12 @@ export class WhatsAppController {
 
     initContacts() {
 
-
         this._user.on('contactschange', docs => {
 
             this.el.contactsMessagesList.innerHTML = '';
 
             docs.forEach(doc => {
                 let contact = doc.data();
-
                 let div = document.createElement('div');
 
                 div.className = 'contact-item';
@@ -160,8 +158,7 @@ export class WhatsAppController {
             Message.getRef(this._contactActive.chatId).onSnapshot(()=>{});
 
         }
-        this._contactActive = contact;
-
+        
         this.el.activeName.innerHTML = contact.name;
         this.el.activeStatus.innerHTML = contact.status;
 
@@ -173,24 +170,30 @@ export class WhatsAppController {
 
         }
 
+        this._contactActive = contact;
+
         this.el.home.hide();
         this.el.main.css({
             display: 'flex'
         });
 
+        this.el.panelMessagesContainer.innerHTML = '';
+
         Message.getRef(this._contactActive.chatId).orderBy('timeStamp')
         .onSnapshot(docs=>{
-
-            this.el.panelMessagesContainer.innerHTML = '';
+ 
+            let scrollTop = this.el.panelMessagesContainer.scrollTop;
+            let scrollTopMax = (this.el.panelMessagesContainer.scrollHeight -
+            this.el.panelMessagesContainer.offsetHeight);
+            let autoScroll = (scrollTop >= scrollTopMax);
 
             docs.forEach(doc=>{
 
                 let data = doc.data();
                 data.id = doc.id;
               
-
                 if(!this.el.panelMessagesContainer.querySelector('#_'+data.id)){
-                    
+                   
                     let message = new Message();
                     message.fromJson(data);
                     
@@ -199,7 +202,15 @@ export class WhatsAppController {
                     this.el.panelMessagesContainer.appendChild(view);
 
                 }        
-            })
+            });
+
+            if(autoScroll){
+
+                this.el.panelMessagesContainer.scrollTop = (this.el.panelMessagesContainer.scrollHeight -
+                    this.el.panelMessagesContainer.offsetHeight);
+            }else{
+                this.el.panelMessagesContainer.scrollTop = scrollTop;
+            }
 
         });
 
@@ -633,8 +644,6 @@ export class WhatsAppController {
                 this.el.btnSendMicrophone.show();
                 this.el.btnSend.hide();
             }
-
-
         });
 
         this.el.btnSend.on('click', e => {

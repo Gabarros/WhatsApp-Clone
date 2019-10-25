@@ -19,7 +19,7 @@ export class Chat extends Model{
 
     static getRef(){
 
-        return Firebase.db().collection('/chats');
+        return Firebase.db().collection('chats');
 
     }
     static create(meEmail, contactEmail){

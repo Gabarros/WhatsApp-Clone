@@ -27,7 +27,7 @@
 
     static dateToTime(date, locale = 'pt_BR'){
 
-        return date.toLocaleTimeString(this._locale,{
+        return date.toLocaleTimeString(locale,{
 
             hours: '2-digit',
             minutes: '2-digit'
