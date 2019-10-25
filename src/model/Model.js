@@ -20,4 +20,6 @@ export class Model extends ClassEvent{
 
         return this._data;
     }
+
+
 }
