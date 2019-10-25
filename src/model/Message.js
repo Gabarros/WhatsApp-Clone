@@ -67,7 +67,7 @@ export class Message extends Model {
                         <div class="_3DZ69" role="button">
                             <div class="_20hTB">
                                 <div class="_1WliW" style="height: 49px; width: 49px;">
-                                    <img src="#" class="Qgzj8 gqwaM photo-contact-sended" style="display:none">
+                                    <img src="${this.content}" class="Qgzj8 gqwaM photo-contact-sended" style="display:none">
                                     <div class="_3ZW2E">
                                         <span data-icon="default-user">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 212" width="212" height="212">
@@ -165,13 +165,8 @@ export class Message extends Model {
                                         </div>
                                     </div>
                                 </div>
-                                <img src="#" class="_1JVSX message-photo" style="width: 100%; display:none">
+                                <img src="${this.content}" class="_1JVSX message-photo" style="width: 100%; display:none">
                                 <div class="_1i3Za"></div>
-                            </div>
-                            <div class="message-container-legend">
-                                <div class="_3zb-j ZhF0n">
-                                    <span dir="ltr" class="selectable-text invisible-space copyable-text message-text">Texto da foto</span>
-                                </div>
                             </div>
                             <div class="_2TvOE">
                                 <div class="_1DZAH text-white" role="button">
@@ -191,6 +186,16 @@ export class Message extends Model {
                     </div>
                 </div>
             `;
+
+            div.querySelector('.message-photo').on('load', e=>{
+
+                div.querySelector('.message-photo').show();
+                div.querySelector('._340lu').hide();
+                div.querySelector('._3v3PK').classList({
+                    height: 'auto'
+                });
+                
+            });
                 break;
 
             case 'audio':
@@ -242,7 +247,7 @@ export class Message extends Model {
                             </div>
                             <div class="_2fuJy">
                                 <div class="_1WliW" style="height: 55px; width: 55px;">
-                                    <img src="#" class="Qgzj8 gqwaM message-photo" style="display:none">
+                                    <img src="${this.content}" class="Qgzj8 gqwaM message-photo" style="display:none">
                                     <div class="_3ZW2E">
                                         <span data-icon="default-user">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 212 212" width="212" height="212">
@@ -304,6 +309,39 @@ export class Message extends Model {
         div.firstElementChild.classList.add(className);
 
         return div;
+    }
+
+    static sendImage(chatId, from, file){
+
+        return new Promise((s,f)=>{
+
+            let uploadTask = Firebase.hd().ref(from).child(Date.now()+ '_'+ file.name).put(file);
+            uploadTask.on('state_changed', e=>{
+    
+                console.info('upload', e);
+            }, err=>{
+    
+                console.error(err);
+    
+            }, ()=>{
+    
+                Message.send(
+                    chatId, 
+                    from, 
+                    'image', 
+                    uploadTask.snapshot.downloadURL
+                    ).then(()=>{
+                   
+                    s();
+
+                });
+    
+            });
+           
+
+        });
+
+
     }
 
     static send(chatId, from, type, content){
