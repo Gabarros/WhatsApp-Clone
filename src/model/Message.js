@@ -1,7 +1,7 @@
 import { Model } from "./Model";
 import { Firebase } from "../util/Firebase";
 import { Format } from "../util/Format";
-import { Base64 } from "../util/Base64";
+
 
 export class Message extends Model {
 
@@ -50,6 +50,54 @@ export class Message extends Model {
         this._data.id = value;
     }
 
+    get info() {
+        return this._data.info;
+    }
+
+    set info(value) {
+        this._data.info = value;
+    }
+
+    get fileType() {
+        return this._data.fileType;
+    }
+
+    set fileType(value) {
+        this._data.fileType = value;
+    }
+
+    get filename() {
+        return this._data.filename;
+    }
+
+    set filename(value) {
+        this._data.filename = value;
+    }
+
+    get preview() {
+        return this._data.preview;
+    }
+
+    set preview(value) {
+        this._data.preview = value;
+    }
+
+    get size() {
+        return this._data.size;
+    }
+
+    set size(value) {
+        this._data.size = value;
+    }
+
+    get from() {
+        return this._data.from;
+    }
+
+    set from(value) {
+        this._data.from = value;
+    }
+
     getViewElement(me = true) {
 
         let div = document.createElement('div');
@@ -59,8 +107,8 @@ export class Message extends Model {
         switch (this.type) {
 
             case 'contact':
-                div.innerHTML = 
-                `<div class="_3_7SH kNKwo tail">
+                div.innerHTML =
+                    `<div class="_3_7SH kNKwo tail">
                     <span class="tail-container"></span>
                     <span class="tail-container highlight"></span>
                     <div class="_1YNgi copyable-text">
@@ -103,13 +151,13 @@ export class Message extends Model {
                    <div class="_3_7SH _1ZPgd">
                     <div class="_1fnMt _2CORf">
                         <a class="_1vKRe" href="#">
-                            <div class="_2jTyA" style="background-image: url()"></div>
+                            <div class="_2jTyA" style="background-image: url(${this.preview})"></div>
                             <div class="_12xX7">
                                 <div class="_3eW69">
                                     <div class="JdzFp message-file-icon icon-doc-pdf"></div>
                                 </div>
                                 <div class="nxILt">
-                                    <span dir="auto" class="message-filename">Arquivo.pdf</span>
+                                    <span dir="auto" class="message-filename">${this.filename}</span>
                                 </div>
                                 <div class="_17viz">
                                     <span data-icon="audio-download" class="message-file-download">
@@ -127,9 +175,9 @@ export class Message extends Model {
                             </div>
                         </a>
                         <div class="_3cMIj">
-                            <span class="PyPig message-file-info">32 páginas</span>
-                            <span class="PyPig message-file-type">PDF</span>
-                            <span class="PyPig message-file-size">4 MB</span>
+                            <span class="PyPig message-file-info">${this.info}</span>
+                            <span class="PyPig message-file-type">${this.fileType}</span>
+                            <span class="PyPig message-file-size">${this.size}</span>
                         </div>
                         <div class="_3Lj_s">
                             <div class="_1DZAH" role="button">
@@ -140,6 +188,11 @@ export class Message extends Model {
                     </div>
                 </div>
             `;
+
+                div.on('click', w => {
+
+                    window.open(this.content);
+                });
 
                 break;
 
@@ -187,15 +240,15 @@ export class Message extends Model {
                 </div>
             `;
 
-            div.querySelector('.message-photo').on('load', e=>{
+                div.querySelector('.message-photo').on('load', e => {
 
-                div.querySelector('.message-photo').show();
-                div.querySelector('._340lu').hide();
-                div.querySelector('._3v3PK').classList({
-                    height: 'auto'
+                    div.querySelector('.message-photo').show();
+                    div.querySelector('._340lu').hide();
+                    div.querySelector('._3v3PK').classList({
+                        height: 'auto'
+                    });
+
                 });
-                
-            });
                 break;
 
             case 'audio':
@@ -298,7 +351,7 @@ export class Message extends Model {
 
         let className = 'message-in';
 
-        if(me){
+        if (me) {
 
             className = 'message-out';
 
@@ -311,86 +364,150 @@ export class Message extends Model {
         return div;
     }
 
-    static sendDocument(chatId, from, file, preview){
+    static upload(file, from) {
 
+        return new Promise((s, f) => {
 
+            let uploadTask = Firebase.hd().ref(from).child(Date.now() + '_' + file.name).put(file);
+            uploadTask.on('state_changed', e => {
+
+                console.info('upload', e);
+
+            }, err => {
+
+                f(err);
+
+            }, () => {
+
+                s(uploadTask.snapshot);
+
+            });
+
+        });
     }
 
-    static sendImage(chatId, from, file){
+    static sendDocument(chatId, from, file, filePreview, info) {
 
-        return new Promise((s,f)=>{
+        Message.send(chatId, from, 'document').then(msgRef => {
 
-            let uploadTask = Firebase.hd().ref(from).child(Date.now()+ '_'+ file.name).put(file);
-            uploadTask.on('state_changed', e=>{
-    
-                console.info('upload', e);
-            }, err=>{
-    
-                console.error(err);
-    
-            }, ()=>{
-    
-                Message.send(
-                    chatId, 
-                    from, 
-                    'image', 
-                    uploadTask.snapshot.downloadURL
-                    ).then(()=>{
-                   
-                    s();
+            Message.upload(file, from).then(snapshot => {
+
+                let downloadFile = snapshot.downloadURL;
+
+                if(filePreview){
+
+                    
+                Message.upload(filePreview, from).then(snapshot => {
+
+                    let downloadPreview = snapshot2.downloadURL;
+                    msgRef.set({
+                        content: downloadFile,
+                        preview: downloadPreview,
+                        filename: file.name,
+                        size: file.size,
+                        fileType: file.type,
+                        status: 'send',
+                        info
+                    }, {
+                        merge: true
+                    });
 
                 });
-    
+
+                } else{
+
+                    msgRef.set({
+                        content: downloadFile,
+                        filename: file.name,
+                        size: file.size,
+                        fileType: file.type,
+                        status: 'send',
+                    }, {
+                        merge: true
+                    });
+
+                }
+
+
             });
-           
+
+
 
         });
 
-
     }
 
-    static send(chatId, from, type, content){
+    static sendImage(chatId, from, file) {
 
-        return new Promise((s, f)=>{
+        return new Promise((s, f) => {
+
+            Message.upload(file, from).then(snapshot => {
+
+                Message.send(
+                    chatId,
+                    from,
+                    'image',
+                    snapshot.downloadURL
+                ).then(() => {
+
+                    s();
+
+                })
+
+            });
+
+
+        });
+    }
+
+    static send(chatId, from, type, content) {
+
+        return new Promise((s, f) => {
 
             Message.getRef(chatId).add({
                 content,
                 timeStamp: new Date(),
                 status: 'wait',
                 type,
-                from 
-            }).then(result=>{
+                from
+            }).then(result => {
 
-                result.parent.doc(result.id).set({
+                let docRef = result.parent.doc(result.id);
+
+                docRef.set({
+
                     status: 'sent'
-                }, {
-                    merge: true
-                }).then(()=>{
 
-                    s();
+                }, {
+
+                    merge: true
+
+                }).then(() => {
+
+                    s(docRef);
 
                 });
 
             });
 
         })
-        
-        
+
+
 
     }
 
-    static getRef(chatId){
+    static getRef(chatId) {
 
         return Firebase.db().collection('chats').doc(chatId).collection('messages');
 
     }
 
-    getStatusViewElement(){
+    getStatusViewElement() {
 
         let div = document.createElement('div');
         div.className = 'message-status';
 
-        switch(this.status){
+        switch (this.status) {
             case 'wait':
                 div.innerHTML = ` 
                 <span data-icon="message-time">
@@ -418,8 +535,8 @@ export class Message extends Model {
                     </span>`;
                 break;
 
-            case 'read': 
-            div.innerHTML = `<span data-icon="msg-dblcheck-ack">
+            case 'read':
+                div.innerHTML = `<span data-icon="msg-dblcheck-ack">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 15" width="16" height="15">
                 <path fill="#4FC3F7" d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"></path>
             </svg>
