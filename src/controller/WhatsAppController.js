@@ -15,15 +15,57 @@ export class WhatsAppController {
 
     constructor() {
 
-        console.log("rodando");
-
         this._firebase = new Firebase();
         this.initAuth();
         this.elementsPrototype();
         this.loadElements();
         this.initEvents();
 
+        this.checkNotifications();
+
     };
+
+    checkNotifications(){
+        if(typeof Notification === 'function'){
+
+            if(Notification.permission !== 'granted'){
+
+                this.el.alertNotificationPermission.show();
+
+            }else{
+
+                this.el.alertNotificationPermission.hide();
+
+            }
+
+            this.el.alertNotificationPermission.on('click', e=>{
+
+                Notification.requestPermission(permission=>{
+
+                    if(permission === 'granted'){
+                        this.el.alertNotificationPermission.hide();
+                        console.info('notificações permitidas');
+                    }
+                })
+            })
+        }
+    }
+
+    notification(data){
+
+        if(Notification.permission === 'granted'){
+
+            let n = new Notification(this._contactActive.name,{
+                icon: this._contactActive.photo,
+                body: data.content
+            });
+
+            setTimeout(()=>{
+
+                if(n) n.close();
+            }, 3000);
+        }
+    }
 
     initAuth() {
 
@@ -190,12 +232,24 @@ export class WhatsAppController {
             this.el.panelMessagesContainer.offsetHeight);
             let autoScroll = (scrollTop >= scrollTopMax);
 
+            this._messagesReceived = [];
+
             docs.forEach(doc=>{
 
                 let data = doc.data();
                 data.id = doc.id;
 
                 let message = new Message();
+
+                if(!me && this._messagesReceived.filter(id=>{
+                    return (id === data.id)
+                }).length === 0){
+
+                    this.notification(data);
+
+                    this._messagesReceived.push(data.id);
+
+                }
                 message.fromJson(data);
 
                 let me = (data.from === this._users.email);
