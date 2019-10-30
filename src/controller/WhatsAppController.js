@@ -15,6 +15,7 @@ export class WhatsAppController {
 
     constructor() {
 
+        this._active = true;
         this._firebase = new Firebase();
         this.initAuth();
         this.elementsPrototype();
@@ -53,12 +54,16 @@ export class WhatsAppController {
 
     notification(data){
 
-        if(Notification.permission === 'granted'){
+        if(Notification.permission === 'granted' && !this._active){
 
             let n = new Notification(this._contactActive.name,{
                 icon: this._contactActive.photo,
                 body: data.content
             });
+
+            let sound = new Audio('./audio/alert.mp3');
+            sound.currentTime = 0;
+            sound.play();
 
             setTimeout(()=>{
 
@@ -239,6 +244,10 @@ export class WhatsAppController {
                 let data = doc.data();
                 data.id = doc.id;
 
+                message.fromJson(data);
+
+                let me = (data.from === this._users.email);
+
                 let message = new Message();
 
                 if(!me && this._messagesReceived.filter(id=>{
@@ -250,9 +259,6 @@ export class WhatsAppController {
                     this._messagesReceived.push(data.id);
 
                 }
-                message.fromJson(data);
-
-                let me = (data.from === this._users.email);
 
                 let view = message.getViewElement(me);
                 
@@ -425,6 +431,18 @@ export class WhatsAppController {
     }
 
     initEvents() {
+
+        window.addEventListener('focus', e=>{
+
+            this._active = true;
+
+        });
+
+        window.addEventListener('blur', e=>{
+
+            this._active = false;
+
+        });
 
         this.el.inputSearchContacts.on('keyup', e=>{
 
